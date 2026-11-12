@@ -1,10 +1,10 @@
 # Puzzle MPV
 
-Watch Puzzle Movies series episodes in MPV with English and optional Russian subtitles.
+Watch Puzzle Movies series episodes and standalone movies in MPV with English and optional Russian subtitles.
 
 ## Direct use
 
-Provide a recent `getEpisodeData` JSON response:
+Provide an exported `.puzzlemovie` file or a recent `getEpisodeData` JSON response:
 
 ```bash
 ./puzzle-mpv getEpisodeData.json
@@ -18,7 +18,7 @@ Defaults:
 ## Windows with MSYS2 UCRT64
 
 ```cmd
-windows\puzzle-mpv.cmd episode.puzzlemovie
+windows\puzzle-mpv.cmd video.puzzlemovie
 ```
 
 The wrapper prepends `C:\msys64\ucrt64\bin` and `C:\msys64\usr\bin` to `PATH`.
@@ -36,21 +36,22 @@ The wrapper prepends `C:\msys64\ucrt64\bin` and `C:\msys64\usr\bin` to `PATH`.
 
 ## Firefox extension
 
-The extension currently supports series episodes only.
+The extension supports series episodes and standalone movie pages.
 
 Temporary installation:
 
 1. Open `about:debugging#/runtime/this-firefox`.
 2. Select **Load Temporary Add-on**.
 3. Select `firefox-extension/manifest.json`.
-4. Open or refresh a series page.
-5. Select an episode.
+4. Open or refresh a Puzzle Movies page.
+5. For a series, select an episode.
 6. Select **Export for player** in the lower-right corner.
 
 Example output:
 
 ```text
 The Institute - S01E01 - The Boy.puzzlemovie
+Spider-Man - Brand New Day.puzzlemovie
 ```
 
 ## Linux `.puzzlemovie` handler
@@ -67,7 +68,7 @@ update-desktop-database "$HOME/.local/share/applications"
 xdg-mime default puzzle-mpv.desktop application/x-puzzlemovie
 ```
 
-Restart Firefox, load the temporary extension again, and export an episode. Select **Open with Puzzle MPV** in Firefox's file dialog.
+Restart Firefox, load the temporary extension again, and export a video. Select **Open with Puzzle MPV** in Firefox's file dialog.
 
 Media URLs can expire. Open exported files soon after downloading them.
 
@@ -98,4 +99,4 @@ The output must be `puzzle-mpv.desktop`.
 
 ### Export fails
 
-Reload the extension from `about:debugging`, refresh the series page, select an episode, and try again. The browser console contains the API error details.
+Reload the extension from `about:debugging`, refresh the Puzzle Movies page, and try again. For a series, select an episode first. The browser console contains error details.

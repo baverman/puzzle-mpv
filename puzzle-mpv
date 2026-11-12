@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Launch a Puzzle Movies episode in MPV with two subtitle tracks."""
+"""Launch Puzzle Movies content in MPV with two subtitle tracks."""
 
 from __future__ import annotations
 
@@ -16,13 +16,13 @@ from typing import Any
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Play a getEpisodeData JSON response in MPV.",
+        description="Play a Puzzle Movies export in MPV.",
         epilog=(
             "Alt+v toggles secondary subtitles. Press g, then b to open the "
             "bilingual subtitle-line selector."
         ),
     )
-    parser.add_argument("episode_json", type=Path, help="getEpisodeData JSON file")
+    parser.add_argument("episode_json", type=Path, help=".puzzlemovie or getEpisodeData JSON file")
     parser.add_argument(
         "--primary", default="en", help="primary subtitle field (default: en)"
     )
@@ -43,11 +43,11 @@ def load_episode(path: Path) -> dict[str, Any]:
         raise ValueError(f"invalid JSON in {path}: {error}") from error
 
     if not isinstance(data, dict):
-        raise ValueError("episode JSON must contain an object")
+        raise ValueError("export file must contain an object")
     if not isinstance(data.get("subtitles"), list):
-        raise ValueError("episode JSON has no subtitles array")
+        raise ValueError("export file has no subtitles array")
     if not data.get("hlsUrl") and not data.get("videoURL"):
-        raise ValueError("episode JSON has no hlsUrl or videoURL")
+        raise ValueError("export file has no hlsUrl or videoURL")
     return data
 
 
