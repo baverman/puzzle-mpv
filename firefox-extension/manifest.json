@@ -1,0 +1,26 @@
+{
+  "manifest_version": 2,
+  "name": "Puzzle Movies Exporter",
+  "version": "0.1.0",
+  "description": "Export the active Puzzle Movies episode for puzzle-mpv.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "puzzle-movies-exporter@local"
+    }
+  },
+  "permissions": [
+    "https://puzzle-movies.com/*",
+    "https://www.puzzle-movies.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://puzzle-movies.com/*",
+        "https://www.puzzle-movies.com/*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

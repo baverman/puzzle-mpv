@@ -1,0 +1,39 @@
+#puzzle-mpv-export-button {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 2147483647;
+  display: none;
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 7px;
+  background: #242424;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font: 600 14px/40px Arial, sans-serif;
+  text-align: center;
+  cursor: pointer;
+}
+
+#puzzle-mpv-export-button:hover:not(:disabled) {
+  background: #343434;
+}
+
+#puzzle-mpv-export-button:focus-visible {
+  outline: 2px solid #ffd84d;
+  outline-offset: 2px;
+}
+
+#puzzle-mpv-export-button:disabled {
+  cursor: wait;
+  opacity: 0.75;
+}
+
+#puzzle-mpv-export-button[data-state="success"] {
+  background: #276738;
+}
+
+#puzzle-mpv-export-button[data-state="error"] {
+  background: #8a2c2c;
+}

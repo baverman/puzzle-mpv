@@ -1,0 +1,156 @@
+#!/usr/bin/env python3
+"""Launch a Puzzle Movies episode in MPV with two subtitle tracks."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import math
+import os
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+from typing import Any
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Play a getEpisodeData JSON response in MPV.",
+        epilog=(
+            "Alt+v toggles secondary subtitles. Press g, then b to open the "
+            "bilingual subtitle-line selector."
+        ),
+    )
+    parser.add_argument("episode_json", type=Path, help="getEpisodeData JSON file")
+    parser.add_argument(
+        "--primary", default="en", help="primary subtitle field (default: en)"
+    )
+    parser.add_argument(
+        "--secondary", default="ru", help="secondary subtitle field (default: ru)"
+    )
+    parser.add_argument("--mpv", default="mpv", help="MPV executable (default: mpv)")
+    return parser.parse_args()
+
+
+def load_episode(path: Path) -> dict[str, Any]:
+    try:
+        with path.open(encoding="utf-8") as source:
+            data = json.load(source)
+    except OSError as error:
+        raise ValueError(f"cannot read {path}: {error}") from error
+    except json.JSONDecodeError as error:
+        raise ValueError(f"invalid JSON in {path}: {error}") from error
+
+    if not isinstance(data, dict):
+        raise ValueError("episode JSON must contain an object")
+    if not isinstance(data.get("subtitles"), list):
+        raise ValueError("episode JSON has no subtitles array")
+    if not data.get("hlsUrl") and not data.get("videoURL"):
+        raise ValueError("episode JSON has no hlsUrl or videoURL")
+    return data
+
+
+def format_timestamp(value: Any) -> str:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f"invalid subtitle timestamp: {value!r}")
+    if not math.isfinite(value) or value < 0:
+        raise ValueError(f"invalid subtitle timestamp: {value!r}")
+
+    milliseconds = int(value * 1000 + 0.5)
+    hours, remainder = divmod(milliseconds, 3_600_000)
+    minutes, remainder = divmod(remainder, 60_000)
+    seconds, milliseconds = divmod(remainder, 1000)
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}.{milliseconds:03d}"
+
+
+def make_webvtt(subtitles: list[Any], language: str) -> str | None:
+    cues: list[str] = ["WEBVTT", ""]
+    cue_count = 0
+
+    for index, cue in enumerate(subtitles):
+        if not isinstance(cue, dict):
+            raise ValueError(f"subtitle {index} must be an object")
+
+        text = cue.get(language)
+        if text is None or text == "":
+            continue
+        if not isinstance(text, str):
+            raise ValueError(f"subtitle {index} field {language!r} must be text")
+
+        start = format_timestamp(cue.get("start"))
+        finish = format_timestamp(cue.get("finish"))
+        if cue["finish"] < cue["start"]:
+            raise ValueError(f"subtitle {index} finishes before it starts")
+
+        # A literal timing delimiter inside cue text is invalid WebVTT syntax.
+        text = text.replace("-->", "→").replace("\r\n", "\n").replace("\r", "\n")
+        cues.extend((f"{start} --> {finish}", text, ""))
+        cue_count += 1
+
+    if cue_count == 0:
+        return None
+    return "\n".join(cues)
+
+
+def run() -> int:
+    args = parse_args()
+    if args.primary == args.secondary:
+        raise ValueError("primary and secondary subtitle fields must be different")
+
+    episode = load_episode(args.episode_json)
+    subtitles = episode["subtitles"]
+    primary_vtt = make_webvtt(subtitles, args.primary)
+    if primary_vtt is None:
+        raise ValueError(f"no non-empty {args.primary!r} subtitles found")
+    secondary_vtt = make_webvtt(subtitles, args.secondary)
+    stream_url = episode.get("hlsUrl") or episode["videoURL"]
+    episode_path = args.episode_json.resolve()
+    lines_script = Path(__file__).resolve().with_name("bilingual-lines.lua")
+    if not lines_script.is_file():
+        raise ValueError(f"MPV script not found: {lines_script}")
+
+    environment = os.environ.copy()
+    environment["PUZZLE_MPV_EPISODE_JSON"] = str(episode_path)
+    environment["PUZZLE_MPV_PRIMARY"] = args.primary
+    environment["PUZZLE_MPV_SECONDARY"] = args.secondary
+
+    with tempfile.TemporaryDirectory(prefix="puzzle-mpv-") as directory:
+        temp_dir = Path(directory)
+        primary_path = temp_dir / f"primary-{args.primary}.vtt"
+        primary_path.write_text(primary_vtt, encoding="utf-8")
+
+        command = [
+            args.mpv,
+            str(stream_url),
+            f"--script={lines_script}",
+            f"--sub-file={primary_path}",
+            "--sid=1",
+        ]
+        if secondary_vtt is not None:
+            secondary_path = temp_dir / f"secondary-{args.secondary}.vtt"
+            secondary_path.write_text(secondary_vtt, encoding="utf-8")
+            command.extend((f"--sub-file={secondary_path}", "--secondary-sid=2"))
+        else:
+            print(
+                f"puzzle-mpv: no {args.secondary!r} subtitles; playing primary only",
+                file=sys.stderr,
+            )
+        try:
+            return subprocess.run(command, check=False, env=environment).returncode
+        except FileNotFoundError as error:
+            raise ValueError(f"MPV executable not found: {args.mpv}") from error
+
+
+def main() -> int:
+    try:
+        return run()
+    except (ValueError, OSError) as error:
+        print(f"puzzle-mpv: {error}", file=sys.stderr)
+        return 2
+    except KeyboardInterrupt:
+        return 130
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
