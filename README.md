@@ -15,6 +15,14 @@ Defaults:
 - Primary subtitles: English
 - Secondary subtitles: Russian
 
+## Windows with MSYS2 UCRT64
+
+```cmd
+windows\puzzle-mpv.cmd episode.puzzlemovie
+```
+
+The wrapper prepends `C:\msys64\ucrt64\bin` and `C:\msys64\usr\bin` to `PATH`.
+
 ## MPV controls
 
 - `Space`: pause and open the bilingual subtitle menu
