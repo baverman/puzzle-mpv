@@ -5,7 +5,10 @@
   "description": "Export Puzzle Movies episodes and movies for puzzle-mpv.",
   "browser_specific_settings": {
     "gecko": {
-      "id": "puzzle-movies-exporter@local"
+      "id": "puzzle-movies-exporter@local",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
     }
   },
   "permissions": [
