@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Puzzle MPV
+Exec=puzzle-mpv %f
+MimeType=application/x-puzzlemovie;
+Terminal=false
+NoDisplay=true

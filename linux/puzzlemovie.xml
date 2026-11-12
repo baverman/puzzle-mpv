@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-puzzlemovie">
+    <comment>Puzzle Movies episode</comment>
+    <sub-class-of type="application/json"/>
+    <magic priority="100">
+      <match type="string" offset="4" value="&quot;puzzleMovieExport&quot;"/>
+    </magic>
+    <glob pattern="*.puzzlemovie" weight="100"/>
+  </mime-type>
+</mime-info>

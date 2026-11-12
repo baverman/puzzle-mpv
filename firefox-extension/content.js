@@ -114,8 +114,9 @@
   }
 
   function downloadJson(data, filename) {
-    const blob = new Blob([`${JSON.stringify(data, null, 2)}\n`], {
-      type: "application/x-puzzlemovie+json",
+    const exportedData = Object.assign({ puzzleMovieExport: 1 }, data);
+    const blob = new Blob([`${JSON.stringify(exportedData, null, 2)}\n`], {
+      type: "application/x-puzzlemovie",
     });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
